@@ -3,6 +3,8 @@ package Utils;
 
 import org.apache.commons.lang.StringUtils;
 
+import java.util.Collections;
+
 public abstract   class StringUtil {
     /**
      * isEmpty?
@@ -16,6 +18,17 @@ public abstract   class StringUtil {
 
         return false;
     }
+
+    /**
+     * 把两个旅馆编码连接，让某两个编码在组合时保证得到结果唯一
+     * @param zjhm1
+     * @param zjhm2
+     * @return
+     */
+    public static String combine2Zjhm(String zjhm1,String zjhm2){
+        return zjhm1.hashCode() > zjhm2.hashCode() ? zjhm1+":" + zjhm2 : zjhm2+":" + zjhm1;
+    }
+
     /**
      * 根据已知字符串生产定长字符串，长度不够左边补0
      * @param s

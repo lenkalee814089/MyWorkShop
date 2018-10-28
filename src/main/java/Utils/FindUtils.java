@@ -3,6 +3,7 @@ package Utils;
 
 import Model.Person;
 import Model.Record;
+import scala.Tuple2;
 
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -40,6 +41,48 @@ public class FindUtils {
     }
 
     /**
+     * 获取任意两公民在某个旅馆的行踪相似度和同住宿次数
+     * @param records
+     * @return
+     */
+    public static Tuple2<HashMap<String,Integer>, HashMap<String,Integer>> getSimalarAndSleepTogetherFromRecords(LinkedList<Record> records){
+        HashMap<String, Integer> similarMap = new HashMap<>();
+        HashMap<String, Integer> sleepTogetherMap = new HashMap<>();
+        int count=0;
+        String key= null;
+        for (Record recordA : records) {
+            //把被判断的记录从集合移除，提高效率
+            records.remove(recordA);
+            for (Record recordB : records) {
+                //同一人的记录不要进行判定
+                if(!recordA.getZjhm().equals(recordB.getZjhm())){
+
+                    //相似判断：如果某两条记录判定相似，则把记录对应两个所属人的相似度+1
+                    if(ifSimilarRecord(recordA, recordB)){
+
+                        key= StringUtil.combine2Zjhm(recordA.getZjhm(), recordB.getZjhm());
+                        count =similarMap.getOrDefault(key,0 );
+                        similarMap.put(key,++count );
+                    }
+                    //同宿判断：
+                    if(isSleeptogether(recordA, recordB)){
+                        key= StringUtil.combine2Zjhm(recordA.getZjhm(), recordB.getZjhm());
+                        count = sleepTogetherMap.getOrDefault(key, 0);
+                        sleepTogetherMap.put(key,++count );
+                    }
+
+                }
+
+            }
+        }
+
+        return new Tuple2<HashMap<String,Integer>,HashMap<String,Integer>>(similarMap,sleepTogetherMap);
+
+    }
+
+
+
+    /**
      * 是否时间交集
      * @param a
      * @param b
@@ -49,6 +92,17 @@ public class FindUtils {
        return !(a.getComeTimeMillSecond()>b.getLeaveTimeMillSecond()||b.getComeTimeMillSecond()>a.getLeaveTimeMillSecond()) ;
     }
 
+    /**
+     * 判断两条记录是否同宿
+     * @param recordA
+     * @param recordB
+     * @return
+     */
+    public static boolean isSleeptogether(Record recordA,Record recordB){
+
+        return isIntersect(recordA, recordB)&&recordA.getrzfh().equals(recordB.getrzfh());
+
+    }
 
     public static boolean ifSleepSameRoom(Person a,Person b){
         HashMap<String, LinkedList<Record>> recordsA = a.getRecords();
@@ -61,7 +115,7 @@ public class FindUtils {
                 LinkedList<Record> recordListB = recordsB.get(lgbh);
                 for (Record recordA : entryA.getValue()) {
                     for (Record recordB : recordListB) {
-                        if (isIntersect(recordA, recordB)&&recordA.getrzfh().equals(recordB.getrzfh())){
+                        if (isSleeptogether(recordA, recordB)){
                             System.out.println("同行");
                             return true;
                         }
